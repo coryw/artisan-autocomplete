@@ -1,0 +1,40 @@
+# bash completion for artisan                                   -*- shell-script -*-
+
+ _get-all-commands()
+ {
+    if ! [ -f "artisan" ];then
+        php $(locate artisan | egrep '[\/]artisan$' | xargs ls -t -w1 head -n1) | egrep "[[:space:]]{2}[a-z]+(:)?[a-z]+?-?[a-Z]+?" -o | cut -f3 -d" " | egrep ^command -v
+    else
+        php artisan | egrep "[[:space:]]{2}[a-z]+(:)?[a-z]+?-?[a-Z]+?" -o | cut -f3 -d" " | egrep ^command -v
+    fi
+ }
+
+ _get-command-args()
+ {
+    _get-all-commands | grep $1 | cut -f2 -d":"
+ }
+
+ _artisan() 
+ {
+     local cur prev opts
+     COMPREPLY=()
+     cur="${COMP_WORDS[COMP_CWORD]}"
+     prev="${COMP_WORDS[COMP_CWORD-1]}"
+    
+    # Show/autocomplete all artisan commands
+    if [ $COMP_CWORD -eq 1 ];then
+        opts=$(_get-all-commands)
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    # Show artisan arguments for this command (after entering preceding colon)
+    elif [ $COMP_CWORD -eq 2 ];then
+        opts=$(_get-command-args $prev)
+        COMPREPLY=( $(compgen -W "${opts}"  ) )
+    # Autocomplete arguments for specified command
+    elif [ $COMP_CWORD -eq 3 ];then
+        opts=$(_get-command-args $prev)
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    fi
+    return 0
+ }
+
+complete -F _artisan artisan

@@ -1,0 +1,14 @@
+#!/bin/bash
+artisan="artisan"
+if ! [ -f "$artisan" ];then
+    artisan="$(locate artisan | egrep '[\/]artisan$' | xargs ls -t -w1 | head -n1)"
+    if ! [ -f "$artisan" ];then
+        echo "Artisan file not found"
+    else 
+        echo "WARNING: not in a Laravel project"
+        echo "Perhaps you meant to use $artisan?"
+    fi
+    exit 1
+fi
+php $artisan $@
+exit 0
